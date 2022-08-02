@@ -85,27 +85,50 @@ export const likePost = async (req, res) => {
 
 //Get Timeline Posts
 export const getTimeLinePosts = async (req, res) => {
-  const userId = req.body.id;
+  const userId = req.params.id;
 
   try {
     //userIdとreq.body.idを比較して探す
     const currentUserPosts = await PostModel.find({ userId: userId });
+    //mongodbのAPIde集計処理
     const followingPosts = await UserModel.aggregate([
       {
         $match: {
           //新しくIDを生成する
-          _id: new mongoose.Types.ObjectId(userId)
+          _id: new mongoose.Types.ObjectId(userId),
         },
-      }
+      },
       {
         $lookup: {
-          from : "posts",
-          localField : "following",
-          foreignField : "userId",
-          as : "followingPosts",
-        }
+          //テーブルのコレクション名
+          from: "posts",
+          //入力コレクションで結合条件したいフィールド
+          localField: "following",
+          //結合したいコレクションで結合条件にしたいフィールド
+          foreignField: "userId",
+          //結果の配列名
+          as: "followingPosts",
+        },
+      },
+      {
+        //新しく作るオブジェクトの設定
+        $project: {
+          followingPosts: 1,
+          _id: 0,
+        },
       },
     ]);
+    res
+      .status(200)
+      //concat() 文字列を結合して連結された文字列を返すmongodbのAPI。「(...followingPosts[0].followingPosts)」でfollowingPostsという配列名で区切らずに、そのまま結合する
+      .json(
+        currentUserPosts
+          .concat(...followingPosts[0].followingPosts)
+          //新しい順に並び替える関数
+          .sort((a, b) => {
+            return b.createdAt - a.createdAt;
+          })
+      );
   } catch (error) {
     res.status(500).json(error);
   }
