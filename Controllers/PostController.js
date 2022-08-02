@@ -120,7 +120,7 @@ export const getTimeLinePosts = async (req, res) => {
     ]);
     res
       .status(200)
-      //concat() 文字列を結合して連結された文字列を返すmongodbのAPI。「(...followingPosts[0].followingPosts)」でfollowingPostsという配列名で区切らずに、そのまま結合する
+      //concat() 文字列を結合して連結された文字列を返すmongodbのAPI。「(...followingPosts[0].followingPosts)」でfollowingPostsという配列名で区切らずに、そのまま結合する。
       .json(
         currentUserPosts
           .concat(...followingPosts[0].followingPosts)
