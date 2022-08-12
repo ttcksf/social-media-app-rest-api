@@ -11,13 +11,14 @@ import UploadRoute from "./Routes/UploadRoute.js";
 //Routes
 const app = express();
 
+//to serce images for public
+app.use(express.static("public"));
+app.use("/images", express.static("images"));
+
 //Middleware
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
-app.use(express.static("public"));
-app.use("/images", express.static("images"));
-
 dotenv.config();
 
 console.log(process.env);
@@ -37,5 +38,5 @@ mongoose
 //useage of routes
 app.use("/auth", AuthRoute);
 app.use("/user", UserRoute);
-app.use("/post", PostRoute);
+app.use("/posts", PostRoute);
 app.use("/upload", UploadRoute);
