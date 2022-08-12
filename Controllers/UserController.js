@@ -22,6 +22,20 @@ export const getUser = async (req, res) => {
   }
 };
 
+//get all users
+export const getAllUser = async (req, res) => {
+  try {
+    let users = await UserModel.find();
+    users = users.map((user) => {
+      const { password, ...otherDetails } = user._doc;
+      return otherDetails;
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
 //update a user
 export const updateUser = async (req, res) => {
   const id = req.params.id;
@@ -77,19 +91,19 @@ export const deleteUser = async (req, res) => {
 export const followUser = async (req, res) => {
   const id = req.params.id;
 
-  const { currentUserId } = req.body;
+  const { _id } = req.body;
 
-  if (currentUserId === id) {
+  if (_id === id) {
     res.status(403).json("Action forbidden");
   } else {
     try {
       const followUser = await UserModel.findById(id);
-      const followingUser = await UserModel.findById(currentUserId);
+      const followingUser = await UserModel.findById(_id);
 
       //currentUserIdが配列の中に含まれていなかったら followers、followingは/Models/userModel.jsより
-      if (!followUser.followers.includes(currentUserId)) {
+      if (!followUser.followers.includes(_id)) {
         //follwersに配列のなかでcurrentUserIdをプッシュする
-        await followUser.updateOne({ $push: { followers: currentUserId } });
+        await followUser.updateOne({ $push: { followers: _id } });
         //follwingに配列のなかでIdをプッシュする
         await followingUser.updateOne({ $push: { following: id } });
         res.status(200).json("User followed!");
@@ -106,19 +120,19 @@ export const followUser = async (req, res) => {
 export const UnFollowUser = async (req, res) => {
   const id = req.params.id;
 
-  const { currentUserId } = req.body;
+  const { _id } = req.body;
 
-  if (currentUserId === id) {
+  if (_id === id) {
     res.status(403).json("Action forbidden");
   } else {
     try {
       const followUser = await UserModel.findById(id);
-      const followingUser = await UserModel.findById(currentUserId);
+      const followingUser = await UserModel.findById(_id);
 
       //currentUserIdが配列の中に含まれていなかったら followers、followingは/Models/userModel.jsより
-      if (followUser.followers.includes(currentUserId)) {
+      if (followUser.followers.includes(_id)) {
         //follwersに配列のなかでcurrentUserIdをプルする
-        await followUser.updateOne({ $pull: { followers: currentUserId } });
+        await followUser.updateOne({ $pull: { followers: _id } });
         //follwingに配列のなかでIdをプルする
         await followingUser.updateOne({ $pull: { following: id } });
         res.status(200).json("User UnFollowed!");
